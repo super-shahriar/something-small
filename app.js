@@ -91,15 +91,20 @@ function renderOptions(step) {
     b.querySelector(".l").textContent = opt.l;
 
     if (opt.vanish) {
-      // this option can't actually be picked — it disappears the moment she
-      // tries, same idea as the ask screen's "no" but without the chase.
+      // this option can't actually be picked. A brief "startled" shake first,
+      // THEN the fade — vanishing on the very first touch with no warning at
+      // all just reads as broken rather than as a joke.
       let vanished = false;
       const vanish = (e) => {
         if (vanished) return;
         vanished = true;
         e.preventDefault();
-        b.classList.add("vanish");
-        setTimeout(() => { b.style.display = "none"; }, 320);
+        b.classList.add("spooked");
+        setTimeout(() => {
+          b.classList.remove("spooked");
+          b.classList.add("vanish");
+          setTimeout(() => { b.style.display = "none"; }, 500);
+        }, 350);
       };
       if (matchMedia("(hover: hover)").matches) b.addEventListener("pointerenter", vanish);
       b.addEventListener("pointerdown", vanish);
