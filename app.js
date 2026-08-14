@@ -244,6 +244,10 @@ function wireAsk() {
   no.addEventListener("pointerdown", flee);
 
   $("#yes-btn").addEventListener("click", () => {
+    // Once it starts dodging, "no" gets reparented onto <body> (see dodge() above) so it can
+    // escape the screen's own containing block — which also means the screen's display:none
+    // no longer hides it when we navigate away. Hide it explicitly here, every time.
+    no.style.display = "none";
     whenPick = { date: "", part: null };
     state.step = 0;
     renderStep();
@@ -350,19 +354,36 @@ function confetti() {
   ctx.scale(dpr, dpr);
 
   const colors = ["#ff6b9d", "#ffd166", "#ff8fab", "#c8a2ff", "#8ecae6", "#ffffff"];
-  const flowers = ["🌸", "🌼", "🌺", "🌷"];
+
+  // Pre-render each flower to its own tiny canvas once. Calling ctx.fillText() every
+  // frame for ~30 flower particles (text shaping + rasterization each time) was heavy
+  // enough to visibly stutter the fall, especially on phones — drawImage from a cached
+  // bitmap is roughly as cheap as the confetti rects, so the fall stays smooth.
+  const FLOWER_PX = 28;
+  const flowerSprites = ["🌸", "🌼", "🌺", "🌷"].map((ch) => {
+    const off = document.createElement("canvas");
+    off.width = off.height = FLOWER_PX * dpr;
+    const octx = off.getContext("2d");
+    octx.scale(dpr, dpr);
+    octx.font = `${FLOWER_PX - 4}px sans-serif`;
+    octx.textAlign = "center";
+    octx.textBaseline = "middle";
+    octx.fillText(ch, FLOWER_PX / 2, FLOWER_PX / 2 + 1);
+    return off;
+  });
+
   const spawn = (fresh) => {
-    const flower = Math.random() < 0.22 ? flowers[(Math.random() * flowers.length) | 0] : null;
+    const sprite = Math.random() < 0.22 ? flowerSprites[(Math.random() * flowerSprites.length) | 0] : null;
     return {
       x: Math.random() * innerWidth,
       y: fresh ? -20 - Math.random() * innerHeight * 0.6 : -20 - Math.random() * 40,
-      w: flower ? 16 + Math.random() * 8 : 5 + Math.random() * 6,
+      w: sprite ? 16 + Math.random() * 8 : 5 + Math.random() * 6,
       vx: -1.2 + Math.random() * 2.4,
-      vy: flower ? 1.2 + Math.random() * 1.6 : 1.8 + Math.random() * 2.6,   // flowers drift a bit slower
+      vy: sprite ? 1.2 + Math.random() * 1.6 : 1.8 + Math.random() * 2.6,   // flowers drift a bit slower
       rot: Math.random() * Math.PI,
       vr: -0.12 + Math.random() * 0.24,
       col: colors[(Math.random() * colors.length) | 0],
-      flower,
+      sprite,
     };
   };
   const parts = Array.from({ length: 130 }, () => spawn(true));
@@ -375,11 +396,8 @@ function confetti() {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rot);
-      if (p.flower) {
-        ctx.font = `${p.w}px sans-serif`;
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(p.flower, 0, 0);
+      if (p.sprite) {
+        ctx.drawImage(p.sprite, -p.w / 2, -p.w / 2, p.w, p.w);
       } else {
         ctx.fillStyle = p.col;
         ctx.fillRect(-p.w / 2, -p.w / 4, p.w, p.w * 0.55);
