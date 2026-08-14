@@ -13,7 +13,7 @@ const CONFIG = {
    followed by a date picker (see renderWhenPicker() below). Use {{name}}
    in a `sub` string anywhere you want her name dropped in. */
 const STEPS = [
-  { key: "day", title: "when?", sub: "night works any day of the week, {{name}} — day needs a weekend", dayNight: true },
+  { key: "day", title: "when?", sub: "night works any day of the week, — day needs a weekend", dayNight: true },
   { key: "food", title: "what are we eating?", sub: "be honest, {{name}}", options: [
       { e: "☕", l: "Coffee with mud-cake" },
       { e: "🍝", l: "Pasta" },
