@@ -53,9 +53,10 @@ html, body {
 }
 
 /* two bands of 👉👈 drifting across the background, opposite directions.
-   Each ::before/::after repeats the SAME unit many times back-to-back, so a
-   translateX of exactly -50% lands on an identical-looking frame — the loop
-   is seamless without needing to measure any pixel widths. */
+   A tiled background-image (not a fixed-length repeated string) so it fills the
+   band at any viewport width — phone or wide desktop — not just however far a
+   hardcoded repeat count happened to stretch. Animating background-position by
+   exactly one tile-width is a seamless, infinite loop. */
 .carousel {
   position: fixed;
   inset: 0;
@@ -65,23 +66,23 @@ html, body {
 }
 .carousel::before,
 .carousel::after {
-  content: "👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈";
+  content: "";
   position: absolute;
-  left: 0;
-  width: max-content;
-  font-size: 22px;
+  left: 0; right: 0;
+  height: 30px;
+  background-image: url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='90' height='30'><text x='0' y='22' font-size='22'>%F0%9F%91%89%F0%9F%91%88</text></svg>");
+  background-repeat: repeat-x;
   opacity: .16;
-  white-space: nowrap;
 }
-.carousel::before { top: 14%; animation: carousel-ltr 32s linear infinite; }
-.carousel::after  { top: 82%; animation: carousel-rtl 28s linear infinite; }
+.carousel::before { top: 14%; animation: carousel-ltr 9s linear infinite; }
+.carousel::after  { top: 82%; animation: carousel-rtl 8s linear infinite; }
 @keyframes carousel-ltr {
-  from { transform: translateX(-50%); }
-  to   { transform: translateX(0); }
+  from { background-position-x: 0; }
+  to   { background-position-x: 90px; }
 }
 @keyframes carousel-rtl {
-  from { transform: translateX(0); }
-  to   { transform: translateX(-50%); }
+  from { background-position-x: 0; }
+  to   { background-position-x: -90px; }
 }
 
 #confetti {
@@ -187,16 +188,14 @@ html, body {
 }
 .ask-row .btn { width: 100%; }
 
-/* the no button, once it starts running */
+/* the no button — vanishes for good the moment she tries to use it */
 #no-btn {
-  transition: transform .16s ease, left .22s cubic-bezier(.2,.9,.3,1), top .22s cubic-bezier(.2,.9,.3,1);
-  will-change: left, top, transform;
+  transition: opacity .3s ease, transform .3s ease;
 }
-#no-btn.loose {
-  position: fixed;
-  z-index: 40;
-  margin: 0;
-  background: var(--card);
+#no-btn.vanish {
+  opacity: 0;
+  transform: scale(.4);
+  pointer-events: none;
 }
 
 /* ── back ───────────────────────────────────────────────── */
