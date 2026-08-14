@@ -188,11 +188,23 @@ html, body {
 }
 .ask-row .btn { width: 100%; }
 
-/* the no button — vanishes for good the moment she tries to use it */
+/* the no button, once it starts running */
 #no-btn {
-  transition: opacity .3s ease, transform .3s ease;
+  transition: transform .16s ease, left .22s cubic-bezier(.2,.9,.3,1), top .22s cubic-bezier(.2,.9,.3,1);
+  will-change: left, top, transform;
 }
-#no-btn.vanish {
+#no-btn.loose {
+  position: fixed;
+  z-index: 40;
+  margin: 0;
+  background: var(--card);
+}
+
+/* shared "vanish" state — for any answer option that should disappear instead of
+   being selectable (e.g. the song step's "No"). Combined selector so it reliably
+   wins over .opt's own transition list regardless of cascade order. */
+.opt.vanish {
+  transition: opacity .3s ease, transform .3s ease;
   opacity: 0;
   transform: scale(.4);
   pointer-events: none;

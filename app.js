@@ -28,7 +28,7 @@ const STEPS = [
   ]},
   { key: "song", title: "will you sing a song for me, {{name}}? 👉👈", sub: "even a little hum counts 🎶", options: [
       { e: "🎤", l: "Yes" },
-      { e: "🙅", l: "No" },
+      { e: "🙅", l: "No", vanish: true },
   ]},
 ];
 
@@ -90,11 +90,26 @@ function renderOptions(step) {
     b.innerHTML = `<span class="e">${opt.e}</span><span class="l"></span>`;
     b.querySelector(".l").textContent = opt.l;
 
-    b.addEventListener("click", () => {
-      box.querySelectorAll(".opt").forEach((o) => o.classList.remove("chosen"));
-      b.classList.add("chosen");
-      choose(step.key, `${opt.e} ${opt.l}`);
-    });
+    if (opt.vanish) {
+      // this option can't actually be picked — it disappears the moment she
+      // tries, same idea as the ask screen's "no" but without the chase.
+      let vanished = false;
+      const vanish = (e) => {
+        if (vanished) return;
+        vanished = true;
+        e.preventDefault();
+        b.classList.add("vanish");
+        setTimeout(() => { b.style.display = "none"; }, 320);
+      };
+      if (matchMedia("(hover: hover)").matches) b.addEventListener("pointerenter", vanish);
+      b.addEventListener("pointerdown", vanish);
+    } else {
+      b.addEventListener("click", () => {
+        box.querySelectorAll(".opt").forEach((o) => o.classList.remove("chosen"));
+        b.classList.add("chosen");
+        choose(step.key, `${opt.e} ${opt.l}`);
+      });
+    }
 
     box.appendChild(b);
   });
@@ -161,23 +176,58 @@ function choose(key, value) {
 }
 
 /* ── the ask ────────────────────────────────────────────── */
-// "no" vanishes the moment she tries to interact with it — hover for a mouse,
-// the press itself for touch — leaving only "yes" behind. One-shot, no reset.
+// "no" dodges forever — there is no give-up, no fallback screen, no way to land a
+// click or a tap on it. Scale is clamped so it stays visible (never shrinks to
+// nothing) and legible (never balloons) no matter how many times it's chased.
+let dodges = 0, noScale = 1, yesScale = 1, lastDodgeAt = 0;
+const NO_SCALE_MIN = 0.55, YES_SCALE_MAX = 1.6;
+const DODGE_COOLDOWN = 260;   // ms — one tick past the .22s left/top transition in style.css,
+                               // so a single mouse approach can't fire pointerenter more than
+                               // once, but a genuinely fast second approach (real chasing)
+                               // still registers once the button visibly finishes relocating
+
+let noFloorY = null;   // its own starting height — it's allowed to roam below this, never above
+
+function dodge() {
+  const now = performance.now();
+  if (now - lastDodgeAt < DODGE_COOLDOWN) return;
+  lastDodgeAt = now;
+
+  const no = $("#no-btn"), yes = $("#yes-btn");
+
+  if (!no.classList.contains("loose")) {
+    const r = no.getBoundingClientRect();
+    no.style.width  = r.width + "px";
+    no.style.height = r.height + "px";
+    no.style.left   = r.left + "px";
+    no.style.top    = r.top + "px";
+    // .screen's entrance animation touches `transform`, which makes it a containing block for
+    // fixed descendants — left/top would then resolve against the card, not the real viewport,
+    // and the button could render somewhere no pointer can ever reach. Escape it onto <body>.
+    document.body.appendChild(no);
+    no.classList.add("loose");
+    noFloorY = r.top;   // never let it dodge above the row it started in — that's where the question is
+  }
+
+  dodges++;
+  const pad = 14;
+  const maxX = Math.max(pad, innerWidth  - no.offsetWidth  - pad);
+  const maxY = Math.max(pad, innerHeight - no.offsetHeight - pad);
+  const minY = Math.min(noFloorY, maxY);
+  no.style.left = pad + Math.random() * (maxX - pad) + "px";
+  no.style.top  = minY + Math.random() * (maxY - minY) + "px";
+
+  noScale  = Math.max(noScale  * 0.82, NO_SCALE_MIN);  no.style.transform  = `scale(${noScale})`;
+  yesScale = Math.min(yesScale * 1.09, YES_SCALE_MAX); yes.style.transform = `scale(${yesScale})`;
+}
+
 function wireAsk() {
   const no = $("#no-btn");
-  let vanished = false;
+  const flee = (e) => { e.preventDefault(); dodge(); };   // preventDefault: on touch, stops the tap ever landing
 
-  const vanish = (e) => {
-    if (vanished) return;
-    vanished = true;
-    e.preventDefault();   // on touch, stops the tap from ever landing as a click
-    no.classList.add("vanish");
-    setTimeout(() => { no.style.display = "none"; }, 320);   // matches the CSS fade duration
-  };
-
-  // mouse: vanish before they can even click. touch: vanish on the press itself.
-  if (matchMedia("(hover: hover)").matches) no.addEventListener("pointerenter", vanish);
-  no.addEventListener("pointerdown", vanish);
+  // mouse: run away before they can even click. touch: run away on the press itself.
+  if (matchMedia("(hover: hover)").matches) no.addEventListener("pointerenter", flee);
+  no.addEventListener("pointerdown", flee);
 
   $("#yes-btn").addEventListener("click", () => {
     whenPick = { date: "", part: null };
