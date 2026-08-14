@@ -22,7 +22,7 @@ const STEPS = [
       { e: "🍜", l: "Thai" },
       { e: "🍚", l: "Fried rice with no sides XD" },
   ]},
-  { key: "place", title: "where to?", sub: "or where from, {{name}} — if we're staying in", options: [
+  { key: "place", title: "where to?", sub: "", options: [
       { e: "🌆", l: "Rooftop" },
       { e: "☕", l: "Cozy café" },
   ]},
