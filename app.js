@@ -350,16 +350,21 @@ function confetti() {
   ctx.scale(dpr, dpr);
 
   const colors = ["#ff6b9d", "#ffd166", "#ff8fab", "#c8a2ff", "#8ecae6", "#ffffff"];
-  const spawn = (fresh) => ({
-    x: Math.random() * innerWidth,
-    y: fresh ? -20 - Math.random() * innerHeight * 0.6 : -20 - Math.random() * 40,
-    w: 5 + Math.random() * 6,
-    vx: -1.2 + Math.random() * 2.4,
-    vy: 1.8 + Math.random() * 2.6,
-    rot: Math.random() * Math.PI,
-    vr: -0.12 + Math.random() * 0.24,
-    col: colors[(Math.random() * colors.length) | 0],
-  });
+  const flowers = ["🌸", "🌼", "🌺", "🌷"];
+  const spawn = (fresh) => {
+    const flower = Math.random() < 0.22 ? flowers[(Math.random() * flowers.length) | 0] : null;
+    return {
+      x: Math.random() * innerWidth,
+      y: fresh ? -20 - Math.random() * innerHeight * 0.6 : -20 - Math.random() * 40,
+      w: flower ? 16 + Math.random() * 8 : 5 + Math.random() * 6,
+      vx: -1.2 + Math.random() * 2.4,
+      vy: flower ? 1.2 + Math.random() * 1.6 : 1.8 + Math.random() * 2.6,   // flowers drift a bit slower
+      rot: Math.random() * Math.PI,
+      vr: -0.12 + Math.random() * 0.24,
+      col: colors[(Math.random() * colors.length) | 0],
+      flower,
+    };
+  };
   const parts = Array.from({ length: 130 }, () => spawn(true));
 
   (function frame() {
@@ -370,8 +375,15 @@ function confetti() {
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rot);
-      ctx.fillStyle = p.col;
-      ctx.fillRect(-p.w / 2, -p.w / 4, p.w, p.w * 0.55);
+      if (p.flower) {
+        ctx.font = `${p.w}px sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(p.flower, 0, 0);
+      } else {
+        ctx.fillStyle = p.col;
+        ctx.fillRect(-p.w / 2, -p.w / 4, p.w, p.w * 0.55);
+      }
       ctx.restore();
     }
     requestAnimationFrame(frame);
