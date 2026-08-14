@@ -15,11 +15,12 @@ const CONFIG = {
 const STEPS = [
   { key: "day", title: "when?", sub: "any Friday, Saturday, or Sunday, {{name}} — day or night", dayNight: true },
   { key: "food", title: "what are we eating?", sub: "be honest, {{name}}", options: [
-      { e: "☕", l: "Coffee" },
+      { e: "☕", l: "Coffee with mud-cake" },
       { e: "🍝", l: "Pasta" },
       { e: "🍕", l: "Pizza" },
       { e: "🥡", l: "Chinese" },
       { e: "🍜", l: "Thai" },
+      { e: "🍚", l: "Fried rice with no sides" },
   ]},
   { key: "place", title: "where to?", sub: "or where from, {{name}} — if we're staying in", options: [
       { e: "🌆", l: "Rooftop" },
