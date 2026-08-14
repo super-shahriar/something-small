@@ -32,7 +32,7 @@ Open `app.js` and fill in the top block:
 
 ```js
 const CONFIG = {
-  herName:   "Neha",
+  herName:   "XYZ",
   scriptUrl: "https://script.google.com/macros/s/AKfy…/exec",
   secret:    "same-random-string-as-Code.gs",
   whatsapp:  "15551234567",   // digits only, with country code
