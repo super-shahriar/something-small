@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>a question for you</title>
+<meta name="theme-color" content="#ffe3ec">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💌</text></svg>">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="sky" aria-hidden="true"></div>
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<main id="app">
+
+  <!-- 0 · intro -->
+  <section class="screen" data-screen="intro">
+    <div class="envelope">💌</div>
+    <h1 class="display">hello <span class="her-name">you</span></h1>
+    <p class="sub">i made you something. it's very small.</p>
+    <button class="btn primary" data-go="ask">open it</button>
+  </section>
+
+  <!-- 1 · the ask -->
+  <section class="screen" data-screen="ask">
+    <div class="envelope">🥺</div>
+    <h1 class="display"><span class="her-name">you</span>, will you go on a date with me?</h1>
+    <p class="sub">take your time. no rush. (there is a little rush)</p>
+    <div class="ask-row">
+      <button class="btn primary" id="yes-btn">yes</button>
+      <button class="btn ghost" id="no-btn">no</button>
+    </div>
+  </section>
+
+  <!-- 2–5 · the four questions (rendered by app.js) -->
+  <section class="screen" data-screen="step">
+    <button class="back" id="back-btn" aria-label="go back">←</button>
+
+    <div class="progress" role="img" aria-label="progress">
+      <svg viewBox="0 0 24 24" class="heart-outline"><use href="#heart"/></svg>
+      <svg viewBox="0 0 24 24" class="heart-fill" id="heart-fill"><use href="#heart"/></svg>
+    </div>
+
+    <h1 class="display" id="step-title"></h1>
+    <p class="sub" id="step-sub"></p>
+
+    <div class="options" id="options"></div>
+
+    <div class="when-picker" id="when-picker" hidden>
+      <input type="date" id="date-input" aria-label="pick a weekend date">
+      <p class="hint" id="date-hint" hidden></p>
+      <div class="options daynight">
+        <button class="opt" type="button" id="pick-day" data-part="Day">
+          <span class="e">🌞</span><span class="l">Day</span>
+        </button>
+        <button class="opt" type="button" id="pick-night" data-part="Night">
+          <span class="e">🌙</span><span class="l">Night</span>
+        </button>
+      </div>
+      <button class="btn primary small" id="when-ok" disabled>let's do it</button>
+    </div>
+  </section>
+
+  <!-- 6 · done -->
+  <section class="screen" data-screen="done">
+    <div class="envelope">🎉</div>
+    <h1 class="display">it's a date, <span class="her-name">you</span>.</h1>
+    <p class="sub" id="done-status">saving…</p>
+
+    <div class="receipt" id="receipt"></div>
+
+    <a class="btn primary" id="wa-btn" target="_blank" rel="noopener">send it to him 💌</a>
+    <button class="btn ghost small" id="copy-btn">copy it instead</button>
+  </section>
+
+</main>
+
+<!-- shared heart path -->
+<svg width="0" height="0" aria-hidden="true" style="position:absolute">
+  <symbol id="heart" viewBox="0 0 24 24">
+    <path d="M12 21s-8.5-5.5-8.5-11A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8.5 3c0 5.5-8.5 11-8.5 11z"/>
+  </symbol>
+</svg>
+
+<script src="app.js"></script>
+</body>
+</html>
