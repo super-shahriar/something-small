@@ -27,8 +27,12 @@ html, body {
 }
 
 /* ── background ─────────────────────────────────────────── */
+/* z-index: 0, not negative — this Chromium build silently fails to paint animated
+   generated content (::after/::before) inside a negative-z-index fixed element
+   (reproduces in headed Chrome too, not just headless). z-index:0 renders fine and,
+   since both sit earlier in the DOM than <main>, still paints behind every screen. */
 .sky {
-  position: fixed; inset: 0; z-index: -2;
+  position: fixed; inset: 0; z-index: 0;
   background:
     radial-gradient(1000px 700px at 15% -5%,  var(--peach), transparent 60%),
     radial-gradient(900px  700px at 95% 10%,  var(--lilac), transparent 60%),
@@ -46,6 +50,38 @@ html, body {
 @keyframes drift {
   from { transform: translateY(0); }
   to   { transform: translateY(-4.2em); }
+}
+
+/* two bands of 👉👈 drifting across the background, opposite directions.
+   Each ::before/::after repeats the SAME unit many times back-to-back, so a
+   translateX of exactly -50% lands on an identical-looking frame — the loop
+   is seamless without needing to measure any pixel widths. */
+.carousel {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.carousel::before,
+.carousel::after {
+  content: "👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈   👉👈";
+  position: absolute;
+  left: 0;
+  width: max-content;
+  font-size: 22px;
+  opacity: .16;
+  white-space: nowrap;
+}
+.carousel::before { top: 14%; animation: carousel-ltr 32s linear infinite; }
+.carousel::after  { top: 82%; animation: carousel-rtl 28s linear infinite; }
+@keyframes carousel-ltr {
+  from { transform: translateX(-50%); }
+  to   { transform: translateX(0); }
+}
+@keyframes carousel-rtl {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
 }
 
 #confetti {
@@ -283,5 +319,5 @@ html, body {
 .receipt .v { font-weight: 600; text-align: right; }
 
 @media (prefers-reduced-motion: reduce) {
-  *, .sky::after { animation: none !important; transition: none !important; }
+  *, .sky::after, .carousel::before, .carousel::after { animation: none !important; transition: none !important; }
 }

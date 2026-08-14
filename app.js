@@ -21,9 +21,13 @@ const STEPS = [
       { e: "🥡", l: "Chinese" },
       { e: "🍜", l: "Thai" },
   ]},
-  { key: "place", title: "where to?", sub: "or where from, if we're staying in, {{name}}", options: [
+  { key: "place", title: "where to?", sub: "or where from, {{name}} — if we're staying in", options: [
       { e: "🌆", l: "Rooftop" },
       { e: "☕", l: "Cozy café" },
+  ]},
+  { key: "song", title: "will you sing a song for me, {{name}}? 👉👈", sub: "even a little hum counts 🎶", options: [
+      { e: "🎤", l: "Yes" },
+      { e: "🙅", l: "No" },
   ]},
 ];
 
@@ -53,7 +57,7 @@ function show(name) {
 function renderStep() {
   const step = STEPS[state.step];
 
-  $("#step-title").textContent = step.title;
+  $("#step-title").textContent = withName(step.title);
   $("#step-sub").textContent   = withName(step.sub || "");
   $("#back-btn").hidden        = state.step === 0;
   $("#heart-fill").style.clipPath = `inset(${100 - (state.step / STEPS.length) * 100}% 0 0 0)`;
@@ -224,7 +228,7 @@ async function finish() {
   confetti();
 
   if (!CONFIG.scriptUrl.startsWith("http")) {
-    $("#done-status").textContent = "not wired up yet — send it below 👇";
+    $("#done-status").textContent = "not wired up yet — take a screenshot and send me 👇";
     return;
   }
 
@@ -249,7 +253,7 @@ async function finish() {
 }
 
 function renderReceipt(picks) {
-  const labels = { day: "when", food: "food", place: "where" };
+  const labels = { day: "when", food: "food", place: "where", song: "song?" };
 
   $("#receipt").innerHTML = "";
   STEPS.forEach((s) => {
@@ -301,7 +305,14 @@ function fromHash() {
 }
 
 /* ── confetti ───────────────────────────────────────────── */
+// Runs forever on the done screen, by design — particles that fall past the
+// bottom just respawn above the top, so it never stops.
+let confettiRunning = false;
+
 function confetti() {
+  if (confettiRunning) return;
+  confettiRunning = true;
+
   const c = $("#confetti"), ctx = c.getContext("2d");
   const dpr = Math.min(devicePixelRatio || 1, 2);
   c.width = innerWidth * dpr;
@@ -309,22 +320,23 @@ function confetti() {
   ctx.scale(dpr, dpr);
 
   const colors = ["#ff6b9d", "#ffd166", "#ff8fab", "#c8a2ff", "#8ecae6", "#ffffff"];
-  const parts = Array.from({ length: 130 }, () => ({
+  const spawn = (fresh) => ({
     x: Math.random() * innerWidth,
-    y: -20 - Math.random() * innerHeight * 0.6,
+    y: fresh ? -20 - Math.random() * innerHeight * 0.6 : -20 - Math.random() * 40,
     w: 5 + Math.random() * 6,
     vx: -1.2 + Math.random() * 2.4,
     vy: 1.8 + Math.random() * 2.6,
     rot: Math.random() * Math.PI,
     vr: -0.12 + Math.random() * 0.24,
     col: colors[(Math.random() * colors.length) | 0],
-  }));
+  });
+  const parts = Array.from({ length: 130 }, () => spawn(true));
 
-  const start = performance.now();
-  (function frame(t) {
+  (function frame() {
     ctx.clearRect(0, 0, innerWidth, innerHeight);
     for (const p of parts) {
       p.x += p.vx; p.y += p.vy; p.vy += 0.018; p.rot += p.vr;
+      if (p.y > innerHeight + 20) Object.assign(p, spawn(false));
       ctx.save();
       ctx.translate(p.x, p.y);
       ctx.rotate(p.rot);
@@ -332,9 +344,8 @@ function confetti() {
       ctx.fillRect(-p.w / 2, -p.w / 4, p.w, p.w * 0.55);
       ctx.restore();
     }
-    if (t - start < 4200) requestAnimationFrame(frame);
-    else ctx.clearRect(0, 0, innerWidth, innerHeight);
-  })(start);
+    requestAnimationFrame(frame);
+  })();
 }
 
 /* ── boot ───────────────────────────────────────────────── */
