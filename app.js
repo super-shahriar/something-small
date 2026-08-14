@@ -9,11 +9,11 @@ const CONFIG = {
 };
 
 /* The three questions. Add/remove/reword freely — the UI is built from this.
-   "day" is special: instead of an option grid, it renders a weekend-only date
-   picker plus a Day/Night choice (see renderWhenPicker() below). Use {{name}}
+   "day" is special: instead of an option grid, it renders a Day/Night choice
+   followed by a date picker (see renderWhenPicker() below). Use {{name}}
    in a `sub` string anywhere you want her name dropped in. */
 const STEPS = [
-  { key: "day", title: "when?", sub: "any Friday, Saturday, or Sunday, {{name}} — day or night", dayNight: true },
+  { key: "day", title: "when?", sub: "night works any day of the week, {{name}} — day needs a weekend", dayNight: true },
   { key: "food", title: "what are we eating?", sub: "be honest, {{name}}", options: [
       { e: "☕", l: "Coffee with mud-cake" },
       { e: "🍝", l: "Pasta" },
@@ -120,28 +120,27 @@ function renderOptions(step) {
   });
 }
 
-/* the "when" step: a date input locked to Fri/Sat/Sun, plus a Day/Night choice.
-   Both are required before "let's do it" enables. Persists across back/forward
+/* the "when" step: Day or Night first, THEN a date — Night allows any day of the
+   week, Day is limited to Friday/Saturday/Sunday. Persists across back/forward
    within one ask-flow — only reset when a fresh "yes" starts the flow over. */
 let whenPick = { date: "", part: null };
 
 function isWeekend(dateStr) {
-  if (!dateStr) return false;
   const day = new Date(dateStr + "T12:00:00").getDay();   // 0=Sun, 5=Fri, 6=Sat
   return day === 0 || day === 5 || day === 6;
 }
 
 function renderWhenPicker() {
   const input = $("#date-input"), hint = $("#date-hint"), ok = $("#when-ok");
+  const dateSection = $("#date-section");
 
+  $$(".when-picker .daynight .opt").forEach((b) => b.classList.toggle("chosen", b.dataset.part === whenPick.part));
   input.value = whenPick.date;
-  $$(".when-picker .opt").forEach((b) => b.classList.toggle("chosen", b.dataset.part === whenPick.part));
-  hint.hidden = true;
-  ok.disabled = !(whenPick.date && whenPick.part);
 
-  input.oninput = () => {
-    if (input.value && !isWeekend(input.value)) {
-      hint.textContent = "weekends only — Friday, Saturday, or Sunday 🙂";
+  const validateDate = () => {
+    const needsWeekend = whenPick.part === "Day";
+    if (input.value && needsWeekend && !isWeekend(input.value)) {
+      hint.textContent = "daytime only works on a weekend — Friday, Saturday, or Sunday 🙂";
       hint.hidden = false;
       whenPick.date = "";
     } else {
@@ -151,11 +150,21 @@ function renderWhenPicker() {
     ok.disabled = !(whenPick.date && whenPick.part);
   };
 
-  $$(".when-picker .opt").forEach((b) => {
+  // date section stays hidden until Day/Night is picked — that choice decides
+  // which dates are even valid, so asking for a date first doesn't make sense
+  dateSection.style.display = whenPick.part ? "" : "none";
+  if (whenPick.part) validateDate();
+  else ok.disabled = true;
+
+  input.oninput = validateDate;
+
+  $$(".when-picker .daynight .opt").forEach((b) => {
     b.onclick = () => {
       whenPick.part = b.dataset.part;
-      $$(".when-picker .opt").forEach((o) => o.classList.toggle("chosen", o === b));
-      ok.disabled = !(whenPick.date && whenPick.part);
+      $$(".when-picker .daynight .opt").forEach((o) => o.classList.toggle("chosen", o === b));
+      dateSection.style.display = "";
+      input.focus();
+      validateDate();   // re-check any already-entered date against the new part
     };
   });
 

@@ -50,8 +50,6 @@
     <div class="options" id="options"></div>
 
     <div class="when-picker" id="when-picker" hidden>
-      <input type="date" id="date-input" aria-label="pick a weekend date">
-      <p class="hint" id="date-hint" hidden></p>
       <div class="options daynight">
         <button class="opt" type="button" id="pick-day" data-part="Day">
           <span class="e">🌞</span><span class="l">Day</span>
@@ -60,6 +58,12 @@
           <span class="e">🌙</span><span class="l">Night</span>
         </button>
       </div>
+
+      <div class="date-section" id="date-section" hidden>
+        <input type="date" id="date-input" aria-label="pick a date">
+        <p class="hint" id="date-hint" hidden></p>
+      </div>
+
       <button class="btn primary small" id="when-ok" disabled>let's do it</button>
     </div>
   </section>

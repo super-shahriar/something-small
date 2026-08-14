@@ -291,6 +291,11 @@ html, body {
   align-items: stretch;
   gap: 12px;
 }
+.date-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 #date-input {
   font: inherit;
   width: 100%;
